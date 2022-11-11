@@ -1,0 +1,65 @@
+version: '3.9'
+
+x-logging: &logging
+  driver: syslog
+  options:
+    syslog-address: "udp://localhost:514"
+    syslog-format: "rfc3164"
+
+services:
+  openldap:
+    image: bitnami/openldap
+    environment:
+      - LDAP_ADMIN_USERNAME=admin
+      - LDAP_ADMIN_PASSWORD=admin
+      - LDAP_ROOT=dc=example,dc=com
+    volumes:
+      - "./config/openldap/setup.ldif:/ldifs/setup.ldif:ro"
+      - "./config/openldap/schema.ldif:/schema/custom.ldif:ro"
+      - "openldap-data:/bitnami/openldap"
+
+  logstash:
+    image: opensearchproject/logstash-oss-with-opensearch-output-plugin:latest
+    command: logstash -f /pipeline.conf
+    volumes:
+      - "./config/logstash/pipeline.conf:/pipeline.conf"
+    ports:
+      - "514:514/udp"
+
+  opensearch-node1:
+    image: opensearchproject/opensearch:latest
+    volumes:
+      - "opensearch-data1:/usr/share/opensearch/data"
+      - "./config/opensearch/security_config.yml:/usr/share/opensearch/config/opensearch-security/config.yml:ro"
+      - "./config/opensearch/roles_mapping.yml:/usr/share/opensearch/config/opensearch-security/roles_mapping.yml:ro"
+    environment:
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
+    depends_on:
+      - openldap
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+
+  opensearch-dash:
+    image: opensearchproject/opensearch-dashboards:latest
+    environment:
+      - OPENSEARCH_HOSTS=["https://opensearch-node1:9200"]
+    ports:
+      - "5601:5601"
+    depends_on:
+      - opensearch-node1
+
+  log-generator:
+    image: debian:latest
+    command: bash -c "while :; do echo Test; sleep 1; done"
+    logging: *logging
+
+volumes:
+  openldap-data:
+  opensearch-data1:

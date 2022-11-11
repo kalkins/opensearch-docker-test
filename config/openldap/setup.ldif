@@ -1,0 +1,21 @@
+# Root
+dn: dc=example,dc=com
+objectClass: dcObject
+objectClass: organization
+dc: example
+o: com
+
+# User organizational unit
+dn: ou=People,dc=example,dc=com
+objectClass: organizationalUnit
+ou: People
+
+# Group organizational unit
+dn: ou=Groups,dc=example,dc=com
+objectClass: organizationalUnit
+ou: Groups
+
+# Pre-defined groups
+dn: cn=superusers,ou=Groups,dc=example,dc=com
+objectClass: groupOfUniqueNames
+cn: superusers
