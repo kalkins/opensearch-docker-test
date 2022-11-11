@@ -1,7 +1,7 @@
 # Opensearch Docker Test
 A simple test of using Logstash and Opensearch with docker compose. This includes shipping syslog logs
-from docker to logstash, and onwards to opensearch. It also includes an example of how to set up LDAP login
-in opensearch, but no users are created.
+from docker, and netflow data, to logstash, and onwards to opensearch.
+It also includes an example of how to set up LDAP login in opensearch, but no users are created.
 
 
 ## Usage
@@ -12,6 +12,8 @@ Login with username "admin" and password "admin".
 ### First time setup
 The first time you start the Opensearch cluster you have to create an index to view the data.
 Go to the burger menu -> Management -> Stack management -> Index Patterns -> Create index pattern -> Enter "docker-syslog-*" -> Next -> Select @timestamp as the time field -> Create.
+
+Do the same, but enter "netflow-*" instead of "docker-syslog-*" to add an index for the netflow data.
 
 Now, to view the data, you can go back to the front page -> Visualize & analyse -> Discover.
 

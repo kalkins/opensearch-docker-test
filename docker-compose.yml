@@ -18,13 +18,19 @@ services:
       - "./config/openldap/schema.ldif:/schema/custom.ldif:ro"
       - "openldap-data:/bitnami/openldap"
 
-  logstash:
+  logstash-syslog:
     image: opensearchproject/logstash-oss-with-opensearch-output-plugin:latest
     command: logstash -f /pipeline.conf
     volumes:
-      - "./config/logstash/pipeline.conf:/pipeline.conf"
+      - "./config/logstash/pipeline-syslog.conf:/pipeline.conf"
     ports:
       - "514:514/udp"
+
+  logstash-netflow:
+    image: opensearchproject/logstash-oss-with-opensearch-output-plugin:latest
+    command: logstash -f /pipeline.conf
+    volumes:
+      - "./config/logstash/pipeline-netflow.conf:/pipeline.conf"
 
   opensearch-node1:
     image: opensearchproject/opensearch:latest
@@ -59,6 +65,11 @@ services:
     image: debian:latest
     command: bash -c "while :; do echo Test; sleep 1; done"
     logging: *logging
+
+  netflow-generator:
+    image: networkstatic/nflow-generator:latest
+    command: -t logstash-netflow -p 2055
+    restart: always
 
 volumes:
   openldap-data:
